@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studio Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --bg-secondary: #f7f6f3;
+    --bg-hover: #efefef;
+    --text: #37352f;
+    --text-secondary: #787774;
+    --text-tertiary: #9b9a97;
+    --border: #e9e9e7;
+    --border-strong: #d0d0ce;
+    --accent: #2eaadc;
+    --accent-bg: #e7f3f8;
+    --success: #0f7b6c;
+    --success-bg: #edfaf3;
+    --warning: #cb912f;
+    --warning-bg: #fef3dc;
+    --danger: #e03e3e;
+    --danger-bg: #fbe4e4;
+    --radius: 4px;
+    --radius-md: 6px;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── Notion page layout ── */
+  .page-wrapper {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 60px 96px 120px;
+  }
+
+  @media (max-width: 700px) {
+    .page-wrapper { padding: 40px 24px 80px; }
+  }
+
+  /* ── Page header ── */
+  .page-icon { font-size: 52px; line-height: 1; margin-bottom: 16px; display: block; }
+
+  .page-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 4px;
+    outline: none;
+  }
+
+  .page-subtitle {
+    font-size: 14px;
+    color: var(--text-tertiary);
+    margin-bottom: 32px;
+  }
+
+  /* ── Properties block (Notion style) ── */
+  .properties {
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+    margin-bottom: 32px;
+  }
+
+  .prop-row {
+    display: flex;
+    align-items: center;
+    padding: 4px 0;
+    border-radius: var(--radius);
+    min-height: 32px;
+  }
+
+  .prop-row:hover { background: var(--bg-hover); margin: 0 -8px; padding: 4px 8px; }
+
+  .prop-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    width: 140px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .prop-label svg { opacity: 0.5; }
+
+  .prop-value {
+    font-size: 13px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+  }
+
+  .tag {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .tag-blue { background: var(--accent-bg); color: #0b6e99; }
+  .tag-green { background: var(--success-bg); color: var(--success); }
+  .tag-yellow { background: var(--warning-bg); color: var(--warning); }
+  .tag-red { background: var(--danger-bg); color: var(--danger); }
+  .tag-gray { background: var(--bg-secondary); color: var(--text-secondary); }
+
+  /* ── Divider ── */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 28px 0;
+  }
+
+  /* ── Section heading (Notion H2) ── */
+  .section-heading {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.01em;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ── Callout block ── */
+  .callout {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+  }
+
+  .callout-icon { font-size: 18px; line-height: 1.3; flex-shrink: 0; }
+  .callout-text { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+  .callout-text strong { color: var(--text); font-weight: 500; }
+
+  /* ── Timer block ── */
+  .timer-block {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .timer-block-header {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .timer-block-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--border-strong);
+    transition: background 0.2s;
+  }
+  .status-dot.active { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.15); }
+
+  .timer-block-body { padding: 20px 16px 16px; }
+
+  /* ── Mode tabs ── */
+  .mode-tabs {
+    display: inline-flex;
+    background: var(--bg-hover);
+    border-radius: var(--radius);
+    padding: 2px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+  }
+
+  .mode-tab {
+    border: none;
+    background: transparent;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    padding: 4px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+
+  .mode-tab.active {
+    background: var(--bg);
+    color: var(--text);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  /* ── Timer display ── */
+  .timer-display {
+    font-size: 56px;
+    font-weight: 300;
+    letter-spacing: -0.04em;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    margin-bottom: 20px;
+    font-family: 'Inter', monospace;
+  }
+
+  .timer-display.warning { color: var(--warning); }
+  .timer-display.done { color: var(--danger); }
+
+  /* ── Countdown input row ── */
+  .cd-setup {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+
+  .cd-setup input {
+    width: 54px;
+    font-family: 'Inter', monospace;
+    font-size: 22px;
+    font-weight: 300;
+    text-align: center;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--text);
+    padding: 6px 4px;
+    outline: none;
+    transition: border-color 0.12s;
+  }
+
+  .cd-setup input:focus { border-color: var(--accent); }
+  .cd-setup span { font-size: 12px; color: var(--text-tertiary); font-weight: 500; }
+
+  /* ── Buttons ── */
+  .btn-row { display: flex; gap: 6px; }
+
+  .btn {
+    border: 1px solid var(--border);
+    background: var(--bg);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    padding: 6px 14px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background 0.1s, box-shadow 0.1s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .btn:hover { background: var(--bg-hover); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+  .btn:active { transform: scale(0.98); }
+
+  .btn-primary {
+    background: var(--text);
+    color: #fff;
+    border-color: transparent;
+  }
+
+  .btn-primary:hover { background: #1a1915; }
+
+  .btn-ghost {
+    border-color: transparent;
+    background: transparent;
+    color: var(--text-secondary);
+  }
+
+  .btn-ghost:hover { background: var(--bg-hover); color: var(--text); }
+
+  /* ── Lap list ── */
+  .lap-section { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px; }
+  .lap-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+    border-bottom: 1px solid var(--border);
+  }
+  .lap-item:last-child { border-bottom: none; }
+
+  /* ── Pages block ── */
+  .pages-block {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .pages-block-header {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .pages-block-body { padding: 20px 16px 16px; }
+
+  .total-input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .total-input-row label { font-size: 13px; color: var(--text-secondary); }
+
+  .total-input-row input {
+    width: 80px;
+    font-family: 'Inter', monospace;
+    font-size: 16px;
+    text-align: center;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--text);
+    padding: 5px 8px;
+    outline: none;
+  }
+
+  .total-input-row input:focus { border-color: var(--accent); }
+
+  .pages-counter-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .pages-big {
+    font-size: 64px;
+    font-weight: 300;
+    letter-spacing: -0.04em;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  .pages-meta { flex: 1; }
+  .pages-meta-line { font-size: 12px; color: var(--text-secondary); line-height: 1.7; }
+  .pages-meta-line strong { color: var(--text); font-weight: 500; }
+
+  .pages-btn-col { display: flex; flex-direction: column; gap: 5px; }
+
+  .page-btn {
+    width: 34px; height: 30px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    border-radius: var(--radius);
+    font-size: 18px;
+    cursor: pointer;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.1s;
+    line-height: 1;
+  }
+
+  .page-btn:hover { background: var(--bg-hover); }
+  .page-btn:active { transform: scale(0.95); }
+
+  /* ── Progress bar ── */
+  .progress-wrap { margin-top: 16px; }
+  .progress-label { display: flex; justify-content: space-between; margin-bottom: 5px; }
+  .progress-label span { font-size: 11px; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
+  .progress-track { height: 3px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--text); border-radius: 99px; transition: width 0.3s ease; }
+
+  /* ── Stats row ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .stat-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+  }
+
+  .stat-card-label { font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .stat-card-value { font-size: 22px; font-weight: 500; color: var(--text); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+
+  /* ── Toggle section ── */
+  .toggle-section { margin-bottom: 20px; }
+  .toggle-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    padding: 4px 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    user-select: none;
+  }
+  .toggle-header:hover { color: var(--text); }
+  .toggle-arrow { font-size: 10px; transition: transform 0.15s; }
+  .toggle-arrow.open { transform: rotate(90deg); }
+  .toggle-body { display: none; padding-top: 8px; }
+  .toggle-body.open { display: block; }
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+
+  <span class="page-icon">📚</span>
+  <h1 class="page-title" contenteditable="true" spellcheck="false">Studio Tracker</h1>
+  <p class="page-subtitle">Monitora il tuo tempo di studio e il progresso sulle pagine</p>
+
+  <div class="properties">
+    <div class="prop-row">
+      <div class="prop-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Stato sessione
+      </div>
+      <div class="prop-value">
+        <span class="tag tag-gray" id="prop-status">⏸ In pausa</span>
+      </div>
+    </div>
+    <div class="prop-row">
+      <div class="prop-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        Pagine totali
+      </div>
+      <div class="prop-value">
+        <span id="prop-total-pages">50</span> pagine
+      </div>
+    </div>
+    <div class="prop-row">
+      <div class="prop-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Avanzamento
+      </div>
+      <div class="prop-value">
+        <span id="prop-progress-pct">0%</span>
+        <span style="font-size:11px; color:var(--text-tertiary)">completato</span>
+      </div>
+    </div>
+    <div class="prop-row">
+      <div class="prop-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Data
+      </div>
+      <div class="prop-value" id="prop-date" style="color:var(--text-secondary)">—</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Timer section -->
+  <div class="section-heading">
+    ⏱ Timer
+  </div>
+
+  <div class="timer-block">
+    <div class="timer-block-header">
+      <span class="timer-block-title">Cronometro / Countdown</span>
+      <div class="status-dot" id="status-dot"></div>
+    </div>
+    <div class="timer-block-body">
+
+      <div class="mode-tabs">
+        <button class="mode-tab active" id="tab-sw" onclick="switchMode('stopwatch')">Cronometro</button>
+        <button class="mode-tab" id="tab-cd" onclick="switchMode('countdown')">Countdown</button>
+      </div>
+
+      <div id="cd-setup" style="display:none">
+        <div class="cd-setup">
+          <input type="number" id="cd-h" min="0" max="23" value="0">
+          <span>h</span>
+          <input type="number" id="cd-m" min="0" max="59" value="25">
+          <span>m</span>
+          <input type="number" id="cd-s" min="0" max="59" value="0">
+          <span>s</span>
+        </div>
+      </div>
+
+      <div class="timer-display" id="timer-display">00:00:00</div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btn-start" onclick="toggleTimer()">▶ Avvia</button>
+        <button class="btn" onclick="resetTimer()">↺ Reset</button>
+        <button class="btn btn-ghost" id="btn-lap" onclick="addLap()" style="display:none">◉ Giro</button>
+      </div>
+
+      <div id="lap-section" style="display:none">
+        <div class="lap-section">
+          <div class="lap-list" id="lap-list"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Pages section -->
+  <div class="section-heading">
+    📖 Pagine
+  </div>
+
+  <div class="pages-block">
+    <div class="pages-block-header">
+      <span class="timer-block-title">Contatore pagine</span>
+      <span class="tag tag-blue" id="pages-tag">0 / 50</span>
+    </div>
+    <div class="pages-block-body">
+
+      <div class="total-input-row">
+        <label>Pagine totali</label>
+        <input type="number" id="pg-total-input" min="1" value="50" oninput="updatePages()">
+      </div>
+
+      <div class="pages-counter-row">
+        <div class="pages-btn-col">
+          <button class="page-btn" onclick="changePage(1)">+</button>
+          <button class="page-btn" onclick="changePage(-1)">−</button>
+        </div>
+        <div class="pages-big" id="pg-remaining">50</div>
+        <div class="pages-meta">
+          <div class="pages-meta-line">pagine rimaste</div>
+          <div class="pages-meta-line" style="margin-top:6px"><strong id="pg-done">0</strong> lette</div>
+          <div class="pages-meta-line">su <strong id="pg-total">50</strong> totali</div>
+        </div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>Progresso</span>
+          <span id="pct-label">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Stats section -->
+  <div class="section-heading">
+    📊 Riepilogo sessione
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-card-label">Tempo trascorso</div>
+      <div class="stat-card-value" id="stat-time">00:00</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">Pagine lette</div>
+      <div class="stat-card-value" id="stat-pages">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">Pag / minuto</div>
+      <div class="stat-card-value" id="stat-rate">—</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Set date
+  const now = new Date();
+  document.getElementById('prop-date').textContent = now.toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  let mode = 'stopwatch';
+  let running = false;
+  let elapsed = 0;
+  let countdownLeft = 0;
+  let interval = null;
+  let laps = [];
+  let sessionSeconds = 0;
+
+  function switchMode(m) {
+    mode = m;
+    resetTimer();
+    document.getElementById('tab-sw').classList.toggle('active', m === 'stopwatch');
+    document.getElementById('tab-cd').classList.toggle('active', m === 'countdown');
+    document.getElementById('cd-setup').style.display = m === 'countdown' ? 'flex' : 'none';
+    document.getElementById('btn-lap').style.display = m === 'stopwatch' ? 'inline-flex' : 'none';
+    document.getElementById('lap-section').style.display = 'none';
+    laps = [];
+    document.getElementById('lap-list').innerHTML = '';
+  }
+
+  function fmt(s) {
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    return [h, m, sec].map(v => String(v).padStart(2, '0')).join(':');
+  }
+
+  function fmt2(s) {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+  }
+
+  function updateDisplay() {
+    const el = document.getElementById('timer-display');
+    if (mode === 'stopwatch') {
+      el.textContent = fmt(elapsed);
+      el.className = 'timer-display';
+    } else {
+      el.textContent = fmt(countdownLeft);
+      el.className = 'timer-display' + (countdownLeft <= 10 && countdownLeft > 0 ? ' warning' : '') + (countdownLeft === 0 && elapsed > 0 ? ' done' : '');
+    }
+    document.getElementById('stat-time').textContent = fmt2(sessionSeconds);
+    const pgDone = parseInt(document.getElementById('pg-done').textContent) || 0;
+    if (sessionSeconds >= 60 && pgDone > 0) {
+      document.getElementById('stat-rate').textContent = (pgDone / (sessionSeconds / 60)).toFixed(1);
+    }
+  }
+
+  function setStatus(s) {
+    const el = document.getElementById('prop-status');
+    if (s === 'running') { el.textContent = '▶ In corso'; el.className = 'tag tag-green'; }
+    else if (s === 'paused') { el.textContent = '⏸ In pausa'; el.className = 'tag tag-yellow'; }
+    else { el.textContent = '— Non iniziato'; el.className = 'tag tag-gray'; }
+  }
+
+  function toggleTimer() {
+    if (!running) {
+      if (mode === 'countdown' && elapsed === 0) {
+        const h = parseInt(document.getElementById('cd-h').value) || 0;
+        const m = parseInt(document.getElementById('cd-m').value) || 0;
+        const s = parseInt(document.getElementById('cd-s').value) || 0;
+        countdownLeft = h * 3600 + m * 60 + s;
+        if (countdownLeft === 0) return;
+      }
+      running = true;
+      document.getElementById('btn-start').innerHTML = '⏸ Pausa';
+      document.getElementById('status-dot').classList.add('active');
+      setStatus('running');
+      interval = setInterval(() => {
+        sessionSeconds++;
+        if (mode === 'stopwatch') {
+          elapsed++;
+        } else {
+          if (countdownLeft > 0) { countdownLeft--; elapsed++; }
+          if (countdownLeft === 0) {
+            clearInterval(interval);
+            running = false;
+            document.getElementById('btn-start').innerHTML = '▶ Avvia';
+            document.getElementById('status-dot').classList.remove('active');
+            setStatus('paused');
+          }
+        }
+        updateDisplay();
+      }, 1000);
+    } else {
+      running = false;
+      clearInterval(interval);
+      document.getElementById('btn-start').innerHTML = '▶ Riprendi';
+      document.getElementById('status-dot').classList.remove('active');
+      setStatus('paused');
+    }
+  }
+
+  function resetTimer() {
+    running = false;
+    clearInterval(interval);
+    elapsed = 0;
+    countdownLeft = 0;
+    laps = [];
+    document.getElementById('btn-start').innerHTML = '▶ Avvia';
+    document.getElementById('status-dot').classList.remove('active');
+    document.getElementById('lap-list').innerHTML = '';
+    document.getElementById('lap-section').style.display = 'none';
+    if (sessionSeconds === 0) setStatus('idle');
+    else setStatus('paused');
+    updateDisplay();
+  }
+
+  function addLap() {
+    if (!running && elapsed === 0) return;
+    laps.push(elapsed);
+    const prev = laps.length > 1 ? laps[laps.length - 2] : 0;
+    const lapEl = document.createElement('div');
+    lapEl.className = 'lap-item';
+    lapEl.innerHTML = '<span style="color:var(--text-secondary)">Giro ' + laps.length + '</span><span>' + fmt(elapsed - prev) + '</span>';
+    document.getElementById('lap-list').prepend(lapEl);
+    document.getElementById('lap-section').style.display = 'block';
+  }
+
+  function updatePages() {
+    const total = Math.max(1, parseInt(document.getElementById('pg-total-input').value) || 1);
+    let done = parseInt(document.getElementById('pg-done').textContent) || 0;
+    done = Math.min(done, total);
+    const remaining = total - done;
+    const pct = Math.round((done / total) * 100);
+    document.getElementById('pg-total').textContent = total;
+    document.getElementById('pg-done').textContent = done;
+    document.getElementById('pg-remaining').textContent = remaining;
+    document.getElementById('stat-pages').textContent = done;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('pct-label').textContent = pct + '%';
+    document.getElementById('prop-total-pages').textContent = total;
+    document.getElementById('prop-progress-pct').textContent = pct + '%';
+    document.getElementById('pages-tag').textContent = done + ' / ' + total;
+  }
+
+  function changePage(delta) {
+    const total = Math.max(1, parseInt(document.getElementById('pg-total-input').value) || 1);
+    let done = parseInt(document.getElementById('pg-done').textContent) || 0;
+    done = Math.max(0, Math.min(total, done + delta));
+    document.getElementById('pg-done').textContent = done;
+    if (done > 0 && sessionSeconds >= 60) {
+      document.getElementById('stat-rate').textContent = (done / (sessionSeconds / 60)).toFixed(1);
+    }
+    updatePages();
+  }
+
+  updateDisplay();
+  updatePages();
+  setStatus('idle');
+</script>
+</body>
+</html>
